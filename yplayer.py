@@ -1,0 +1,204 @@
+import subprocess, re, sys, requests, os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+bold = '\033[1m'
+red = '\033[91m'
+green = '\033[92m'
+yellow = '\033[93m'
+blue = '\033[94m'
+purple = '\033[95m'
+aqua = '\033[96m'
+endc = '\033[0m'
+
+youtube_key = os.getenv('YPLAYER_KEY')
+next_page_token = []
+prev_page_token = []
+if len(sys.argv) < 2:
+    sys.argv.append('a')
+if sys.argv[1] in ['h']:
+    print('a >>> audio\nv >>> video\nc >>> channel\np >>> playlist\nb >>> blacklist\nf >>> favourite\nw >>> watched'), exit()
+elif sys.argv[1] in ['a', 'v']:
+    content_type = 'video'
+elif sys.argv[1] == 'c':
+    content_type = 'channel'
+elif sys.argv[1] == 'p':
+    print('Under development!!!'), exit()
+    content_type = 'playlist'
+def youtube_search(n):
+    global lst1, lst0, blacklist, bl_path, favourite, fv_path, search_params, raw_query, wt_path, watched 
+    lst1 = []
+    bl_path = os.getenv('BL_PATH')
+    fv_path = os.getenv('FV_PATH')
+    wt_path = os.getenv('WT_PATH')
+    with open(bl_path, 'r') as f:
+        blacklist = [i for i in f.read().split('\n') if i]
+    with open(fv_path, 'r') as f:
+        favourite = [i for i in f.read().split('\n') if i]
+    with open(wt_path, 'r') as f:
+        watched = [i for i in f.read().split('\n') if i]
+    base_url='https://www.googleapis.com/youtube/v3/'
+    if sys.argv[1] not in  ['f', 'b', 'w']:
+        if n  in ['next', 'prev']:
+            query_0 = old_query.split('--')
+        else:
+            raw_query = input(f'{red}{bold}Query >>> {endc}').strip()
+            query_0 = raw_query.split('--')
+        query = query_0[0]
+        search_params = {
+            'key': youtube_key,
+            'q': query,  
+            'maxResults': 50, 
+            'type': content_type, 
+            'safeSearch': 'none',
+        }
+        if len(query_0) > 1:
+            if query_0[-1] == 'l':
+                query_duration = 'long'
+            elif query_0[-1] == 'm':
+                query_duration = 'medium'
+            elif query_0[-1] == 's':
+                query_duration = 'short'
+        else:
+            query_duration = 'any'
+        if sys.argv[1] in ['v', 'a'] and not n:
+            results = requests.get(f"{base_url}search?videoDuration={query_duration}", params=search_params).json()
+            next_page_token.append(results['nextPageToken'])
+        elif not n:
+            results = requests.get(f"{base_url}search?", params=search_params).json()
+            next_page_token.append(results['nextPageToken'])
+
+        if n == 'next':  
+            search_params['pageToken'] = next_page_token[0]
+            results = requests.get(f"{base_url}search?videoDuration={query_duration}", params=search_params).json()
+            next_page_token.pop()
+            next_page_token.append(results['nextPageToken'])
+            try: prev_page_token.pop()
+            except: pass
+            prev_page_token.append(results['prevPageToken'])
+        elif n == 'prev':
+            try: search_params['pageToken'] = prev_page_token[0]
+            except IndexError: print('This is the first page!!!'), exit()
+            results = requests.get(f"{base_url}search?videoDuration={query_duration}", params=search_params).json()
+            prev_page_token.pop()
+            try: prev_page_token.append(results['prevPageToken'])
+            except KeyError: pass
+        lst0 = [i['id'][f'{content_type}Id'] for i in results['items'] if content_type in i['id']['kind'] and  not (i['id'][f'{content_type}Id'] in blacklist or i['id'][f'{content_type}Id'] in favourite or i['id'][f'{content_type}Id'] in watched)]
+    if sys.argv[1] == 'f':
+        lst0 = [i for i in favourite if i]
+    elif sys.argv[1] == 'w':
+        lst0 = [i for i in watched if i]
+    elif sys.argv[1] == 'b':
+        lst0 = [i for i in blacklist if i]     
+    elif sys.argv[1] == 'c':
+        channel_params = {
+            'key': youtube_key,
+            'id': ','.join(lst0),
+            'part': 'statistics,snippet,contentDetails'
+            }
+        channels = requests.get(f"{base_url}channels", params=channel_params).json()
+        playlist_lst0 = [[i['contentDetails']['relatedPlaylists']['uploads'], i['snippet']['title'], i['statistics']['subscriberCount']] for i in channels['items']]
+        playlist_lst1 = sorted(playlist_lst0, key=lambda x: int(x[2]))
+        playlist_lst2 = []          
+        for id, i in enumerate(playlist_lst1):
+            print(f"{id} ==> {i[1]} ==> {i[2]}")
+            playlist_lst2.append(i[0])
+        chan_n = int(input('>>> '))
+        playlist_params = { 
+            'key': youtube_key,
+            'playlistId': playlist_lst2[chan_n],
+            'part': 'snippet',
+            'maxResults': 50
+            }
+        videos_itemes = requests.get(f"{base_url}playlistItems", params=playlist_params).json()
+        lst0 = []
+        for id, i in enumerate(videos_itemes['items']):
+            if i['snippet']['resourceId']['videoId'] not in blacklist and i['snippet']['resourceId']['videoId'] not in favourite and i['snippet']['resourceId']['videoId'] not in watched: 
+                lst0.append(i['snippet']['resourceId']['videoId'])
+    video_params = {
+        'key': youtube_key,
+        'part': 'contentDetails,snippet,statistics',
+        'id': ','.join(lst0)
+    }
+    videos = requests.get(f"{base_url}videos", params=video_params).json()
+    if sys.argv[1] == 'c':
+        video_base = reversed(videos['items'])
+    elif sys.argv[1] in ['v']:
+        video_base = sorted(videos['items'], reverse=True, key=lambda x: int(x['statistics']['viewCount']))
+    elif sys.argv[1] in ['a']:
+        video_base = sorted(videos['items'], key=lambda x: int(x['statistics']['viewCount']))
+    elif sys.argv[1] in ['f', 'w', 'b']:
+        video_base = sorted(videos['items'], key=lambda x: x['snippet']['title'])
+    for id, i in enumerate(video_base):
+        title = i['snippet']['title']
+        views = i['statistics']['viewCount']
+        pub_date = i['snippet']['publishedAt'].split('T')[0]
+        try: duration = i['contentDetails']['duration']
+        except KeyError: duration = 'unkown'
+        try:seconds = re.search(r'\d+S', duration).group(0)[:-1].zfill(2)
+        except AttributeError: seconds = '00'
+        try:minutes = re.search(r'\d+M', duration).group(0)[:-1].zfill(2)
+        except AttributeError: minutes = '00'            
+        try: hours = re.search(r'\d+H', duration).group(0)[:-1].zfill(2)
+        except AttributeError: hours = '00'
+        duration = hours+':'+minutes+':'+seconds 
+        print(f"{red}{bold}{id} {green}==> {yellow}{bold}{title} {green}==> {blue}{duration} {green}==> {purple}{pub_date} {green}==> {aqua}{views}{endc}")
+        lst1.append('https://youtu.be/'+i['id'])
+youtube_search(None)
+while True:
+    n = input(f'{green}{bold}>>> {endc}')
+    if n in ['q', 'й', ' ']: break
+    elif n in ['r', 'к']: youtube_search(None)
+    elif n  in ['next', 'prev']:
+        old_query = raw_query
+        youtube_search(n)
+    else:
+        for id1, i in enumerate(lst1):
+            if '-' in n:
+                min_id = int(n.split('-')[0])
+                max_id = int(n.split('-')[-1])
+                if min_id <= id1 <= max_id:
+                    print(lst1[id1])
+                    with open(wt_path, 'a') as f: f.write(lst1[id1][17:]+'\n')
+                    subprocess.run(['mpv', lst1[id1], '--no-video'])
+            elif ',' in n:
+                selected_ids = n.split(',')
+                if id1 in [int(i) for i in selected_ids]:
+                    print(id1, '>>>', lst1[id1])
+                    with open(wt_path, 'a') as f: f.write(lst1[id1][17:]+'\n')
+                    subprocess.run(['mpv', lst1[id1], '--no-video'])
+            elif '<=' in n:
+                min_id = int(n.split('<=')[0])
+                if id1 >= min_id:
+                    print(id1, '>>>', lst1[id1])
+                    with open(wt_path, 'a') as f: f.write(lst1[id1][17:]+'\n')
+                    subprocess.run(['mpv', lst1[id1], '--no-video'])
+            elif '>=' in n:
+                max_id = int(n.split('>=')[0])
+                if id1 <= max_id:
+                    print(id1, '>>>', lst1[id1])
+                    with open(wt_path, 'a') as f: f.write(lst1[id1][17:]+'\n')
+                    subprocess.run(['mpv', lst1[id1], '--no-video',])
+            elif 'bl' in n:
+                selected_id = int(n.split('bl')[0])
+                bl_video_id = lst1[id1].split('.be/')[-1]
+                if bl_video_id not in blacklist and id1==selected_id:
+                    with open(bl_path, 'a') as f:
+                        f.write(bl_video_id+'\n')
+                        continue
+            elif 'fv' in n:
+                selected_id = int(n.split('fv')[0])
+                fv_video_id = lst1[id1].split('.be/')[-1]
+                if fv_video_id not in favourite and id1==selected_id:
+                    with open(fv_path, 'a') as f:
+                        f.write(fv_video_id+'\n')
+                        continue
+            elif sys.argv[1] in ['c', 'v', 'p'] and id1 == int(n):
+                print(id1, '>>>', lst1[id1])
+                with open(wt_path, 'a') as f: f.write(lst1[id1][17:]+'\n')
+                subprocess.run(['mpv', lst1[int(n)],])
+            elif id1 == int(n):
+                print(id1, '>>>', lst1[id1])
+                with open(wt_path, 'a') as f: f.write(lst1[id1][17:]+'\n')
+                subprocess.run(['mpv', lst1[int(n)], '--no-video'])
