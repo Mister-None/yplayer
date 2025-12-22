@@ -38,5 +38,4 @@ TODO
      Examples:   
         "python yplayer.py f" # show favourite videos
         "python yplayer.py b" # show blacklisted videos
-12. Enjoy minimalistic reprasantion of youtube.
-    
+12. Enjoy minimalistic represantion of youtube.   
