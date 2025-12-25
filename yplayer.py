@@ -11,7 +11,6 @@ blue = '\033[94m'
 purple = '\033[95m'
 aqua = '\033[96m'
 endc = '\033[0m'
-
 youtube_key = os.getenv('YPLAYER_KEY')
 next_page_token = []
 prev_page_token = []
@@ -27,7 +26,7 @@ elif sys.argv[1] == 'p':
     print('Under development!!!'), exit()
     content_type = 'playlist'
 def youtube_search(n):
-    global lst1, lst0, blacklist, bl_path, favourite, fv_path, search_params, raw_query, wt_path, watched 
+    global lst1, lst0, blacklist, bl_path, favourite, fv_path, search_params, raw_query, wt_path, watched, min_number, max_number, old_max_number 
     lst1 = []
     bl_path = os.getenv('BL_PATH')
     fv_path = os.getenv('FV_PATH')
@@ -43,7 +42,7 @@ def youtube_search(n):
         if n  in ['next', 'prev']:
             query_0 = old_query.split('--')
         else:
-            raw_query = input(f'{red}{bold}Query >>> {endc}').strip()
+            raw_query = input(aqua + f'Query >>> {endc}' ).strip()
             query_0 = raw_query.split('--')
         query = query_0[0]
         search_params = {
@@ -64,7 +63,8 @@ def youtube_search(n):
             query_duration = 'any'
         if sys.argv[1] in ['v', 'a'] and not n:
             results = requests.get(f"{base_url}search?videoDuration={query_duration}", params=search_params).json()
-            next_page_token.append(results['nextPageToken'])
+            try:next_page_token.append(results['nextPageToken'])
+            except KeyError: print(red + "There is no more results for that query!!!" + endc)
         elif not n:
             results = requests.get(f"{base_url}search?", params=search_params).json()
             next_page_token.append(results['nextPageToken'])
@@ -85,12 +85,29 @@ def youtube_search(n):
             try: prev_page_token.append(results['prevPageToken'])
             except KeyError: pass
         lst0 = [i['id'][f'{content_type}Id'] for i in results['items'] if content_type in i['id']['kind'] and  not (i['id'][f'{content_type}Id'] in blacklist or i['id'][f'{content_type}Id'] in favourite or i['id'][f'{content_type}Id'] in watched)]
-    if sys.argv[1] == 'f':
-        lst0 = [i for i in favourite if i]
-    elif sys.argv[1] == 'w':
-        lst0 = [i for i in watched if i]
-    elif sys.argv[1] == 'b':
-        lst0 = [i for i in blacklist if i]     
+    if sys.argv[1] in ['f', 'b', 'w']:
+        if sys.argv[1] == 'b':
+            desired_list = blacklist       
+        elif sys.argv[1] == 'f':
+            desired_list = favourite       
+        elif sys.argv[1] == 'w':
+            desired_list = watched       
+        if not n:
+            min_number = 0
+            max_number = 50
+        elif n == 'next':
+            min_number = max_number
+            max_number += 50
+            if len(desired_list) < max_number:
+                old_max_number = max_number
+                max_number = len(desired_list) + 1
+        elif n == 'prev':
+            min_number -= 50 
+            if len(desired_list) < max_number:
+                max_number = old_max_number - 50
+            else:    
+                max_number -= 50
+        lst0 = [i for i in desired_list[min_number:max_number] if i]     
     elif sys.argv[1] == 'c':
         channel_params = {
             'key': youtube_key,
@@ -142,14 +159,19 @@ def youtube_search(n):
         except AttributeError: minutes = '00'            
         try: hours = re.search(r'\d+H', duration).group(0)[:-1].zfill(2)
         except AttributeError: hours = '00'
-        duration = hours+':'+minutes+':'+seconds 
-        print(f"{red}{bold}{id} {green}==> {yellow}{bold}{title} {green}==> {blue}{duration} {green}==> {purple}{pub_date} {green}==> {aqua}{views}{endc}")
+        duration = hours+':'+minutes+':'+seconds
+        if sys.argv[1] in ['b', 'f', 'w']:
+            offset_id = min_number + id 
+            print(f"{red}{bold}{offset_id} {green}==> {yellow}{bold}{title} {green}==> {blue}{duration} {green}==> {purple}{pub_date} {green}==> {aqua}{views}{endc}")
+        else:
+            print(f"{red}{bold}{id} {green}==> {yellow}{bold}{title} {green}==> {blue}{duration} {green}==> {purple}{pub_date} {green}==> {aqua}{views}{endc}")
         lst1.append('https://youtu.be/'+i['id'])
 youtube_search(None)
 while True:
     n = input(f'{green}{bold}>>> {endc}')
     if n in ['q', 'й', ' ']: break
     elif n in ['r', 'к']: youtube_search(None)
+    elif n  in ['next', 'prev'] and sys.argv[1] in ['b', 'f', 'w']: youtube_search(n)
     elif n  in ['next', 'prev']:
         old_query = raw_query
         youtube_search(n)
