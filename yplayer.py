@@ -59,6 +59,8 @@ def youtube_search(n):
                 query_duration = 'medium'
             elif query_0[-1] == 's':
                 query_duration = 'short'
+        elif len(query_0) == 1 and  sys.argv[1] == 'a':
+            query_duration = 'long'
         else:
             query_duration = 'any'
         if sys.argv[1] in ['v', 'a'] and not n:
