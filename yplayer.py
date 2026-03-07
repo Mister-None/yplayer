@@ -1,23 +1,23 @@
 import subprocess, re, sys, requests, os
 from dotenv import load_dotenv
+from colorama import Fore, init
 
 load_dotenv()
+init(autoreset=True)
 
-bold = '\033[1m'
-red = '\033[91m'
-green = '\033[92m'
-yellow = '\033[93m'
-blue = '\033[94m'
-purple = '\033[95m'
-aqua = '\033[96m'
-endc = '\033[0m'
+
 youtube_key = os.getenv('YPLAYER_KEY')
+base_url = os.getenv('BASE_URL')
+
 next_page_token = []
 prev_page_token = []
+
 if len(sys.argv) < 2:
     sys.argv.append('a')
+
 if sys.argv[1] in ['h']:
     print('a >>> audio\nv >>> video\nc >>> channel\np >>> playlist\nb >>> blacklist\nf >>> favourite\nw >>> watched'), exit()
+
 elif sys.argv[1] in ['a', 'v']:
     content_type = 'video'
 elif sys.argv[1] == 'c':
@@ -25,26 +25,32 @@ elif sys.argv[1] == 'c':
 elif sys.argv[1] == 'p':
     print('Under development!!!'), exit()
     content_type = 'playlist'
+
 def youtube_search(n):
     global lst1, lst0, blacklist, bl_path, favourite, fv_path, search_params, raw_query, wt_path, watched, min_number, max_number, old_max_number 
     lst1 = []
+
     bl_path = os.getenv('BL_PATH')
     fv_path = os.getenv('FV_PATH')
     wt_path = os.getenv('WT_PATH')
+
     with open(bl_path, 'r') as f:
         blacklist = [i for i in f.read().split('\n') if i]
     with open(fv_path, 'r') as f:
         favourite = [i for i in f.read().split('\n') if i]
     with open(wt_path, 'r') as f:
         watched = [i for i in f.read().split('\n') if i]
-    base_url='https://www.googleapis.com/youtube/v3/'
-    if sys.argv[1] not in  ['f', 'b', 'w']:
+
+    if sys.argv[1] not in ['f', 'b', 'w']:
         if n  in ['next', 'prev']:
             query_0 = old_query.split('--')
+
         else:
-            raw_query = input(aqua + f'Query >>> {endc}' ).strip()
+            raw_query = input(Fore.LIGHTCYAN_EX + f'> ').strip()
             query_0 = raw_query.split('--')
+
         query = query_0[0]
+
         search_params = {
             'key': youtube_key,
             'q': query,  
@@ -59,14 +65,15 @@ def youtube_search(n):
                 query_duration = 'medium'
             elif query_0[-1] == 's':
                 query_duration = 'short'
-        elif len(query_0) == 1 and  sys.argv[1] == 'a':
-            query_duration = 'long'
+
         else:
             query_duration = 'any'
+
         if sys.argv[1] in ['v', 'a'] and not n:
             results = requests.get(f"{base_url}search?videoDuration={query_duration}", params=search_params).json()
             try:next_page_token.append(results['nextPageToken'])
-            except KeyError: print(red + "There is no more results for that query!!!" + endc)
+            except KeyError: print(Fore.RED + "There is no more results for that query!!!")
+
         elif not n:
             results = requests.get(f"{base_url}search?", params=search_params).json()
             next_page_token.append(results['nextPageToken'])
@@ -165,12 +172,16 @@ def youtube_search(n):
         if sys.argv[1] in ['b', 'f', 'w']:
             offset_id = min_number + id 
             print(f"{red}{bold}{offset_id} {green}==> {yellow}{bold}{title} {green}==> {blue}{duration} {green}==> {purple}{pub_date} {green}==> {aqua}{views}{endc}")
+
         else:
-            print(f"{red}{bold}{id} {green}==> {yellow}{bold}{title} {green}==> {blue}{duration} {green}==> {purple}{pub_date} {green}==> {aqua}{views}{endc}")
+            if int(hours) == 0 and int(minutes) > 1: 
+                print(f"{Fore.LIGHTYELLOW_EX}{id}{Fore.LIGHTBLUE_EX} {Fore.LIGHTWHITE_EX}==> {Fore.LIGHTMAGENTA_EX}{title} {Fore.LIGHTWHITE_EX}==> {Fore.LIGHTCYAN_EX}{duration} {Fore.LIGHTWHITE_EX}==> {Fore.LIGHTBLUE_EX}{pub_date} {Fore.LIGHTWHITE_EX}==> {Fore.YELLOW}{views}")
+
         lst1.append('https://youtu.be/'+i['id'])
 youtube_search(None)
+
 while True:
-    n = input(f'{green}{bold}>>> {endc}')
+    n = input(Fore.LIGHTGREEN_EX + '>>> ')
     if n in ['q', 'й', ' ']: break
     elif n in ['r', 'к']: youtube_search(None)
     elif n  in ['next', 'prev'] and sys.argv[1] in ['b', 'f', 'w']: youtube_search(n)
@@ -179,7 +190,12 @@ while True:
         youtube_search(n)
     else:
         for id1, i in enumerate(lst1):
-            if '-' in n:
+            if n.endswith('d'):
+                selected_id = int(re.search(r'\d+',  n).group(0))
+                if id1 == selected_id:
+                    subprocess.run(['yt-dlp', lst1[id1], '-x', '-q'])
+
+            elif '-' in n:
                 min_id = int(n.split('-')[0])
                 max_id = int(n.split('-')[-1])
                 if min_id <= id1 <= max_id:
