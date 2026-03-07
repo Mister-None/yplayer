@@ -193,7 +193,7 @@ while True:
             if n.endswith('d'):
                 selected_id = int(re.search(r'\d+',  n).group(0))
                 if id1 == selected_id:
-                    subprocess.run(['yt-dlp', lst1[id1], '-x', '-q'])
+                    subprocess.run(['sudo', 'yt-dlp', lst1[id1], '-x', '-q'])
 
             elif '-' in n:
                 min_id = int(n.split('-')[0])
