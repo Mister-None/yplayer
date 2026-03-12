@@ -82,7 +82,10 @@ def youtube_search(n):
             search_params['pageToken'] = next_page_token[0]
             results = requests.get(f"{base_url}search?videoDuration={query_duration}", params=search_params).json()
             next_page_token.pop()
-            next_page_token.append(results['nextPageToken'])
+            try:next_page_token.append(results['nextPageToken'])
+            except KeyError: 
+                print('No more results')
+                exit()
             try: prev_page_token.pop()
             except: pass
             prev_page_token.append(results['prevPageToken'])
@@ -155,7 +158,8 @@ def youtube_search(n):
     elif sys.argv[1] in ['a']:
         video_base = sorted(videos['items'], key=lambda x: int(x['statistics']['viewCount']))
     elif sys.argv[1] in ['f', 'w', 'b']:
-        video_base = sorted(videos['items'], key=lambda x: x['snippet']['title'])
+        video_base = videos['items']
+        #video_base = sorted(videos['items'], key=lambda x: x['snippet']['title'])
     for id, i in enumerate(video_base):
         title = i['snippet']['title']
         views = i['statistics']['viewCount']
@@ -171,11 +175,11 @@ def youtube_search(n):
         duration = hours+':'+minutes+':'+seconds
         if sys.argv[1] in ['b', 'f', 'w']:
             offset_id = min_number + id 
-            print(f"{red}{bold}{offset_id} {green}==> {yellow}{bold}{title} {green}==> {blue}{duration} {green}==> {purple}{pub_date} {green}==> {aqua}{views}{endc}")
+            print(f"{Fore.LIGHTYELLOW_EX}{offset_id}{Fore.LIGHTWHITE_EX} ==> {Fore.LIGHTMAGENTA_EX}{title} {Fore.LIGHTWHITE_EX}==> {Fore.LIGHTCYAN_EX}{duration} {Fore.LIGHTWHITE_EX}==> {Fore.LIGHTBLUE_EX}{pub_date} {Fore.LIGHTWHITE_EX}==> {Fore.YELLOW}{views}")
 
         else:
             if int(hours) == 0 and int(minutes) > 1: 
-                print(f"{Fore.LIGHTYELLOW_EX}{id}{Fore.LIGHTBLUE_EX} {Fore.LIGHTWHITE_EX}==> {Fore.LIGHTMAGENTA_EX}{title} {Fore.LIGHTWHITE_EX}==> {Fore.LIGHTCYAN_EX}{duration} {Fore.LIGHTWHITE_EX}==> {Fore.LIGHTBLUE_EX}{pub_date} {Fore.LIGHTWHITE_EX}==> {Fore.YELLOW}{views}")
+                print(f"{Fore.LIGHTYELLOW_EX}{id}{Fore.LIGHTWHITE_EX}==> {Fore.LIGHTMAGENTA_EX}{title} {Fore.LIGHTWHITE_EX}==> {Fore.LIGHTCYAN_EX}{duration} {Fore.LIGHTWHITE_EX}==> {Fore.LIGHTBLUE_EX}{pub_date} {Fore.LIGHTWHITE_EX}==> {Fore.YELLOW}{views}")
 
         lst1.append('https://youtu.be/'+i['id'])
 youtube_search(None)
@@ -227,12 +231,12 @@ while True:
                     with open(bl_path, 'a') as f:
                         f.write(bl_video_id+'\n')
                         continue
-            elif 'fv' in n:
-                selected_id = int(n.split('fv')[0])
+            elif n.endswith('f'):
+                selected_id = int(re.search(r'\d+',  n).group(0))
                 fv_video_id = lst1[id1].split('.be/')[-1]
                 if fv_video_id not in favourite and id1==selected_id:
                     with open(fv_path, 'a') as f:
-                        f.write(fv_video_id+'\n')
+                        f.write('https://youtu.be/'+fv_video_id+'\n')
                         continue
             elif sys.argv[1] in ['c', 'v', 'p'] and id1 == int(n):
                 print(id1, '>>>', lst1[id1])
