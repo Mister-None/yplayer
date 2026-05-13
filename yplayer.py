@@ -2,7 +2,7 @@ import subprocess, re, sys, requests, os
 from dotenv import load_dotenv
 from colorama import Fore, init
 
-load_dotenv()
+load_dotenv(dotenv_path=os.getenv('DOTENV_FILE_PATH'))
 init(autoreset=True)
 
 
@@ -243,6 +243,6 @@ while True:
                 with open(wt_path, 'a') as f: f.write(lst1[id1][17:]+'\n')
                 subprocess.run(['mpv', lst1[int(n)],])
             elif id1 == int(n):
-                print(id1, '>>>', lst1[id1])
                 with open(wt_path, 'a') as f: f.write(lst1[id1][17:]+'\n')
+                print(lst1[int(n)])
                 subprocess.run(['mpv', lst1[int(n)], '--no-video'])
