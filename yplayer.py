@@ -178,7 +178,7 @@ def youtube_search(n):
             print(f"{Fore.LIGHTYELLOW_EX}{offset_id}{Fore.LIGHTWHITE_EX} ==> {Fore.LIGHTMAGENTA_EX}{title} {Fore.LIGHTWHITE_EX}==> {Fore.LIGHTCYAN_EX}{duration} {Fore.LIGHTWHITE_EX}==> {Fore.LIGHTBLUE_EX}{pub_date} {Fore.LIGHTWHITE_EX}==> {Fore.YELLOW}{views}")
 
         else:
-            if int(hours) == 0 and int(minutes) > 1: 
+            if int(minutes) >= 2: 
                 print(f"{Fore.LIGHTYELLOW_EX}{id}{Fore.LIGHTWHITE_EX}==> {Fore.LIGHTMAGENTA_EX}{title} {Fore.LIGHTWHITE_EX}==> {Fore.LIGHTCYAN_EX}{duration} {Fore.LIGHTWHITE_EX}==> {Fore.LIGHTBLUE_EX}{pub_date} {Fore.LIGHTWHITE_EX}==> {Fore.YELLOW}{views}")
 
         lst1.append('https://youtu.be/'+i['id'])
