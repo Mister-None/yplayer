@@ -6,17 +6,17 @@ Search and play youtube videos using terminal and mpv player
 2. Create `.env` file and put there your key,  should be `YPLAYER_KEY=your_key`;
 3. Add in your `.env` three path:
     ```.env
-        BL_PATH=blacklist videos
-        FV_PATH=favourite videos
-        WT_PATH=watched videos
+    BL_PATH=blacklist videos
+    FV_PATH=favourite videos
+    WT_PATH=watched videos
     ```
 4. For help use:
     ```bash
-        python yplayer.py h
+    python yplayer.py h
     ```
 5. By default yplayer in audio mode, if you want to watch video:
     ```bash
-        python yplayer.py v
+    python yplayer.py v
     ```
 6. For selecting duration use options in "Query" prompt; 
     * `jazz night --l` (shows only videos that are more than 20 minutes)
@@ -27,25 +27,25 @@ Search and play youtube videos using terminal and mpv player
 9. For selecting previous list of results enter `prev` in "Query" prompt;
 10. For selecting video:
     ```bash
-        1. video1
-        2. video2
-        3. video3
-        4. video4
-        ...
-        50. video50
-        >>> 1 # play video1
-        >>> 3<= # play from 3 to the end of list
-        >>> 2,3,45 # play video2, video3, video45
-        >>> 30>= # play from video30 to the first item of list
-        >>> 3bl # add video to blacklist
-        >>> 3fv # add video to favourite list
-        >>> 3d # download audio track
-        # enter 'q' for exiting playing
+    1. video1
+    2. video2
+    3. video3
+    4. video4
+    ...
+    50. video50
+    >>> 1 # play video1
+    >>> 3<= # play from 3 to the end of list
+    >>> 2,3,45 # play video2, video3, video45
+    >>> 30>= # play from video30 to the first item of list
+    >>> 3bl # add video to blacklist
+    >>> 3fv # add video to favourite list
+    >>> 3d # download audio track
+    # enter 'q' for exiting playing
     ```
 **Listened/watched videos automatically add to watched list, so you wont see them again in a search results, if you wanna see list use option `b, f, w` (blacklist, favourite, watched respectfully)**
     ```bash
-        python yplayer.py f" # show favourite videos
-        python yplayer.py b" # show blacklisted videos
-        python yplayer.py w" # show watched videos
+    python yplayer.py f" # show favourite videos
+    python yplayer.py b" # show blacklisted videos
+    python yplayer.py w" # show watched videos
     ```
 **Enjoy minimalistic represantion of youtube**   
