@@ -43,7 +43,7 @@ Search and play youtube videos using terminal and mpv player
     # enter 'q' for exiting playing
     # enter 'r' for  returning to main query
     ```
-**Listened/watched videos automatically add to watched list, so you wont see them again in a search results, if you wanna see list use option `b, f, w` (blacklist, favourite, watched respectfully)**
+11. Listened/watched videos automatically add to watched list, so you wont see them again in a search results, if you wanna see list use option `b, f, w` (blacklist, favourite, watched respectfully)**
     ```bash
     python yplayer.py b
     python yplayer.py f
