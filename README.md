@@ -41,11 +41,12 @@ Search and play youtube videos using terminal and mpv player
     >>> 3fv # add video to favourite list
     >>> 3d # download audio track
     # enter 'q' for exiting playing
+    # enter 'r' for  returning to main query
     ```
 **Listened/watched videos automatically add to watched list, so you wont see them again in a search results, if you wanna see list use option `b, f, w` (blacklist, favourite, watched respectfully)**
     ```bash
-    python yplayer.py f" # show favourite videos
-    python yplayer.py b" # show blacklisted videos
-    python yplayer.py w" # show watched videos
+    python yplayer.py b
+    python yplayer.py f
+    python yplayer.py w
     ```
 **Enjoy minimalistic represantion of youtube**   
