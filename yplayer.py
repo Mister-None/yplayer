@@ -241,7 +241,7 @@ while True:
             elif sys.argv[1] in ['c', 'v', 'p'] and id1 == int(n):
                 print(id1, '>>>', lst1[id1])
                 with open(wt_path, 'a') as f: f.write(lst1[id1][17:]+'\n')
-                subprocess.run(['mpv', lst1[int(n)],])
+                subprocess.run(['sudo', 'mpv', lst1[int(n)],])
             elif id1 == int(n):
                 with open(wt_path, 'a') as f: f.write(lst1[id1][17:]+'\n')
                 print(lst1[int(n)])
