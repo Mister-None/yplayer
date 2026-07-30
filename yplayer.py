@@ -8,7 +8,6 @@ init(autoreset=True)
 
 youtube_key = os.getenv('YPLAYER_KEY')
 base_url = os.getenv('BASE_URL')
-
 next_page_token = []
 prev_page_token = []
 
@@ -159,7 +158,6 @@ def youtube_search(n):
         video_base = sorted(videos['items'], key=lambda x: int(x['statistics']['viewCount']))
     elif sys.argv[1] in ['f', 'w', 'b']:
         video_base = videos['items']
-        #video_base = sorted(videos['items'], key=lambda x: x['snippet']['title'])
     for id, i in enumerate(video_base):
         title = i['snippet']['title']
         views = i['statistics']['viewCount']
@@ -197,7 +195,7 @@ while True:
             if n.endswith('d'):
                 selected_id = int(re.search(r'\d+',  n).group(0))
                 if id1 == selected_id:
-                    subprocess.run(['sudo', 'yt-dlp', lst1[id1], '-x', '-q'])
+                    subprocess.run(['yt-dlp', lst1[id1], '-x', '--quiet'])
 
             elif '-' in n:
                 min_id = int(n.split('-')[0])
@@ -241,7 +239,7 @@ while True:
             elif sys.argv[1] in ['c', 'v', 'p'] and id1 == int(n):
                 print(id1, '>>>', lst1[id1])
                 with open(wt_path, 'a') as f: f.write(lst1[id1][17:]+'\n')
-                subprocess.run(['sudo', 'mpv', lst1[int(n)],])
+                subprocess.run(['mpv', lst1[int(n)]])
             elif id1 == int(n):
                 with open(wt_path, 'a') as f: f.write(lst1[id1][17:]+'\n')
                 print(lst1[int(n)])
